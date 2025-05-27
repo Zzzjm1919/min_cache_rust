@@ -1,63 +1,22 @@
-pub mod db {
-    use std::{
-        // collections::HashMap,
-        time::{SystemTime, UNIX_EPOCH},
-    };
-
-    pub struct MinCache {
-        buf: Vec<u8>,
-        // tail: u64,
-        // index_map: HashMap<String, u64>,
-    }
-
-    impl MinCache {
-        pub fn new() -> Self {
-            Self {
-                buf: Vec::new(),
-                // tail: 0,
-                // index_map: HashMap::new(),
-            }
-        }
-
-        pub fn put(&mut self, key: String, value: &[u8]) {
-            let time_stamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis();
-
-            gen_entry(time_stamp, key, value, &mut self.buf)
-        }
-
-        pub fn get(&mut self, key: &str) -> Option<String> {
-            let slice = &self.buf[16 + 2..];
-            match read_from_entry(key, slice) {
-                None => None,
-                Some(v) => String::from_utf8(v.to_vec()).ok(),
-            }
-        }
-    }
-
-    fn gen_entry(time_stamp: u128, key: String, value: &[u8], buf: &mut Vec<u8>) {
-        let key_len = key.len() as u16;
-        buf.extend_from_slice(&time_stamp.to_le_bytes());
-
-        buf.extend_from_slice(&key_len.to_le_bytes());
-        buf.extend_from_slice(&key.as_bytes());
-        buf.extend_from_slice(value);
-    }
-
-    fn read_from_entry<'a>(key: &str, buf: &'a [u8]) -> Option<&'a [u8]> {
-        let key_len = key.len();
-
-        Some(&buf[key_len..])
-    }
-}
+use crate::db::db::MinCache;
+mod db;
 
 fn main() {
-    let mut cache = db::MinCache::new();
-    let value = String::from("my value");
-    cache.put(String::from("key1"), value.as_bytes());
-
-    let result = cache.get("key1");
+    let mut cache = MinCache::new();
+    full_entry(&mut cache);
+    let result = cache.get(&String::from("name"));
     println!("{:?}", result);
+}
+
+fn full_entry(cache: &mut MinCache) {
+    let key1 = String::from("key1");
+    let value1 = String::from("my value1");
+    let key2 = String::from("key2");
+    let value2 = String::from("my value2");
+    let name = String::from("name");
+    let name_value = String::from("张三");
+
+    cache.put(&key1, value1.as_bytes());
+    cache.put(&key2, value2.as_bytes());
+    cache.put(&name, name_value.as_bytes());
 }
