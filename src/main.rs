@@ -1,10 +1,13 @@
 use crate::db::db::MinCache;
+use std::thread;
+use std::time::Duration;
+
 mod db;
 
 fn main() {
     let mut cache = MinCache::new();
     full_entry(&mut cache);
-    let result = cache.get(&String::from("name"));
+    let result = cache.get(&String::from("key1"));
     println!("{:?}", result);
 }
 
@@ -18,5 +21,7 @@ fn full_entry(cache: &mut MinCache) {
 
     cache.put(&key1, value1.as_bytes());
     cache.put(&key2, value2.as_bytes());
-    cache.put(&name, name_value.as_bytes());
+    cache.put_with_ttl(&name, name_value.as_bytes(), 5);
+
+    thread::sleep(Duration::from_secs(2));
 }
